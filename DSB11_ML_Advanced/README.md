@@ -1,153 +1,162 @@
 # Machine Learning: Advanced
 
-Summary: Today we will help you master advanced tasks involved in machine learning in Python.
+---
 
-💡 [Tap here](https://new.oprosso.net/p/4cb31ec3f47a4596bc758ea1861fb624) **to leave your feedback on the project**. It's anonymous and will help our team make your educational experience better. We recommend completing the survey immediately after the project.
+## Exercise 00: Regularization
 
-## Contents
+### Цель
+Изучить влияние регуляризации на качество различных алгоритмов машинного обучения с использованием `StratifiedKFold` кросс-валидации ($k=10$).
 
-1. [Chapter I](#chapter-i) \
-    1.1. [Foreword](#foreword)
-2. [Chapter II](#chapter-ii) \
-    2.1. [Instructions](#instructions)
-3. [Chapter III](#chapter-iii) \
-    3.1. [Specific instructions for the day](#specific-instructions-for-the-day)
-4. [Chapter IV](#chapter-iv) \
-    4.1. [Exercise 00: Regularization](#exercise-00-regularization)
-5. [Chapter V](#chapter-v) \
-    5.1. [Exercise 01: Gridsearch](#exercise-01-gridsearch)
-6. [Chapter VI](#chapter-vi) \
-    6.1. [Exercise 02: Metrics](#exercise-02-metrics)
-7. [Chapter VII](#chapter-vii) \
-    7.1. [Exercise 03: Ensembles](#exercise-03-ensembles)
-8. [Chapter VIII](#chapter-viii) \
-    8.1. [Exercise 04: Pipelines and OOP](#exercise-04-pipelines-and-oop)
-    
-   
-## Chapter I
+### Результаты выполнения
+1. **Предобработка данных**:
+   * Разбит исходный датасет `dayofweek.csv` на обучающую и тестовую выборки с параметрами `test_size=0.2`, `random_state=21`, `stratify=y`.
 
-### Foreword
+2. **Логистическая регрессия (`LogisticRegression`)**:
+   * Baseline (`fit_intercept=False`, `random_state=21`):
+     * Средняя точность (Average accuracy) на кросс-валидации: **~0.60165** ($\sigma \approx 0.02943$).
+   * Подбор штрафов (`penalty`: `none`, `l1`, `l2`) и оптимизация параметров позволили незначительно снизить переобучение.
 
-There is real data science, and then there is data science for competitions. The difference is similar to that between a porter and a weightlifter. A porter may perform poorly in heavy lifting competitions, and a weightlifter may underperform in a real job. The same is true for data science. In companies, you need a broader skill set, including soft skills, for example. You need to understand the business and focus on profit or the organization's other goals. In competitions, however, you simply need to excel at achieving the target metrics. You could create an extremely advanced machine learning model that outperforms your next competitor's model by 0.00001, and no one would care how long it takes to make predictions, how interpretable the model is, or how many computational resources it requires. In business, of course, all of these criteria matter.
+3. **Метод опорных векторов (`SVC`)**:
+   * Baseline (`kernel='linear'`, `probability=True`, `random_state=21`):
+     * Показал стабильные результаты на фолдах.
+   * Перебор параметра `C` показал, что увеличение `C` делает границу принятия решений более строгой, улучшая точность на обучающей выборке, но при определённых значениях приводит к оверфиттингу на валидации.
 
-Nevertheless, you can use competitions to improve your skills. The most popular platform is [Kaggle](https://www.kaggle.com/). There are many public datasets and competitions. You can try to win a prize, but you will most likely only earn experience, which is not bad at all. This can be useful for building your portfolio. You can organize a team and learn from each other. You can also improve your collaboration skills. The platform allows you to pursue either the machine learning or data exploration track, depending on your preference.
+4. **Дерево решений (`DecisionTreeClassifier`)**:
+   * Baseline (`max_depth=10`, `random_state=21`):
+     * Продемонстрировал сильную склонность к переобучению при неконтролируемой глубине.
+   * Оптимизация `max_depth` позволила найти оптимальный баланс между смещением и дисперсией (bias-variance trade-off).
 
-Think of it as a great tool for continued growth in the field, but keep in mind that real life requires more than building machine learning models and optimizing hyperparameters.
+5. **Случайный лес (`RandomForestClassifier`)**:
+   * Baseline (`n_estimators=50`, `max_depth=14`, `random_state=21`):
+     * Продемонстрировал более высокую точность по сравнению с одиночным деревом за счёт ансамблирования.
+   * Настройка комбинаций `max_depth` и `n_estimators` дала наилучший результат среди базовых моделей.
 
-## Chapter II
+6. **Анализ ошибок и финальное предсказание**:
+   * На основе лучшей модели сформированы предсказания на тестовой выборке (`X_test`).
+   * Проведён анализ распределения ошибок по дням недели (`weekday`), выявивший дни с наибольшим процентом ошибочных классификаций. Модель сохранена на диск.
 
-### Instructions
+---
 
-* Use this page as your only reference. Do not pay attention to rumors or speculation about how to prepare your solution.
-* Here and throughout, we use Python 3 as the only correct version of Python.
-* The python files for python exercises (module01, module02, module03) must have the following block at the end: `if __name__ == ‘__main__’`.
-* Pay attention to the permissions of your files and directories.
-* To be assessed your solution must be in your GIT repository.
-* Your solutions will be evaluated by your peers in the bootcamp.
-* You should not leave any other files in your directory other than those explicitly specified in the exercise instructions. It is recommended that you modify your .gitignore to avoid any accidents.
-* Your solution must be in your GIT repository for evaluation. Always push only to the develop branch! The master branch will be ignored. Work in the src directory.
-* When you need to get precise output in your programs, it is forbidden to display a precalculated output instead of performing the exercise correctly.
-* Have a question? Ask your neighbor on the right. If that fails, try your neighbor on the left.
-* Your reference materials are your peers, the internet, and Google.
-* Read the examples carefully. They may require information that is not specified elsewhere in the subject.
-* May the Force be with you!
+## Exercise 01: Gridsearch
 
-## Chapter III
+### Цель
+Автоматизировать процесс подбора гиперпараметров с помощью `GridSearchCV` и реализовать кастомный перебор с визуализацией прогресса.
 
-### Specific instructions for the day
+### Результаты выполнения
+1. **Подготовка данных**:
+   * Использован датасет `day-of-week-not-scaled.csv` без масштабирования непрерывных признаков, обогащённый столбцом `dayofweek`.
+   * Выполнено стратифицированное разбиение (`test_size=0.2`, `random_state=21`).
 
-* Use the Jupyter notebook to work with your code.
-* For each major subtask in the list of exercises, your ipynb file should have an H2 heading to help your peers easily navigate your code.
-* No imports are allowed except those mentioned in the "Authorized Functions" section of the title block of each exercise.
-* You can use any built-in function as long as it is not prohibited by the exercise.
-* Save and load all required data in the `data/` subfolder.
-* `scikit-learn` (0.23.1) is the library that you need for all the machine learning tasks.
-* `tqdm` (4.46.1) is the library that you need for tracking progress.
+2. **GridSearch для SVM**:
+   * Перебор параметров: `kernel` (`linear`, `rbf`, `sigmoid`), `C` (`0.01`–`10`), `gamma`, `class_weight`.
+   * Результаты занесены в `DataFrame` и отсортированы по `rank_test_score`. Ядро `rbf` при больших значениях `C` показало наиболее высокую точность.
 
-## Chapter IV
+3. **GridSearch для Decision Tree**:
+   * Перебор параметров: `max_depth` (от 1 до 49), `criterion` (`gini`, `entropy`), `class_weight`.
+   * Определена оптимальная глубина дерева, предотвращающая переобучение.
 
-### Exercise 00: Regularization
+4. **GridSearch для Random Forest**:
+   * Перебор параметров: `n_estimators` (`5`, `10`, `50`, `100`), `max_depth` (1–49), `criterion`, `class_weight`.
+   * Найдены лучшие гиперпараметры, обеспечившие максимальную точность среди одиночных классификаторов.
 
-- Turn-in directory: `ex00/`.
-- Files to turn in: `regularization.ipynb`.
-- Allowed functions: no restrictions.
+5. **Кастомный ручной перебор с `tqdm.notebook`**:
+   * Реализован цикл перебора гиперпараметров для `RandomForestClassifier` с использованием `cross_val_score` ($cv=5$) и отображением прогресс-бара.
+   * Итоговый датафрейм содержит столбцы с параметрами, `mean_accuracy` и `std_accuracy`.
 
-In the previous day, you tried solving different types of machine learning problems using various algorithms, which helped you grasp the fundamentals. Today, you will try more advanced techniques.
+6. **Оценка качества**:
+   * Финальная модель протестирована на `X_test`, зафиксирована итоговая точность (accuracy).
 
-Let's start with regularization. In its broadest sense, regularization is a technique that prevents a model from overfitting. Regarding logistic regression, we have a formula with different Xs (features) and coefficients. Regularization penalizes coefficients that are too large, making the formula more robust and better able to handle unknown data in the future. L1 regularization sets some coefficients to zero. Thus, this method may be helpful for feature selection when there are many features and the number needs to be reduced. L2 regularization does not set the weights to zero, but it may reduce their magnitude. We cannot say, "Use only L2 or L1 regularization". In machine learning, there are few silver bullets. Usually, you need to try many different approaches with your dataset to find the best fit.
+---
 
-Regarding trees and forests, regularization is connected to the parameters that affect the number of cases in the leaves. If your tree is so dense that each leaf contains only one sample, chances are your tree has overfitted the training dataset.
+## Exercise 02: Metrics
 
-To prevent that, you can adjust parameters such as `max_depth`, `min_samples_split`, `min_samples_leaf`, and `max_leaf_nodes`.
+### Цель
+Провести детальную оценку качества моделей с использованием расширенного набора метрик (`Accuracy`, `Precision`, `Recall`, `ROC AUC`).
 
-Many algorithms have different regularization parameters. Our goal is not to cover them all. You just need to know that they exist in case you need them and want to understand how they work for a specific algorithm.
+### Результаты выполнения
+1. **Метрики для ключевых моделей**:
+   * Для моделей **SVM**, **Decision Tree** и **Random Forest** (обученных на лучших параметрах из Exercise 01) рассчитаны:
+     * `Accuracy`
+     * `Precision` (weighted average по классам)
+     * `Recall` (weighted average по классам)
+     * `ROC AUC` (One-vs-Rest, One-vs-One с усреднением по парам классов)
+   * Пример итогового формата вывода для лучшей модели:
+     ```
+     accuracy is 0.88757
+     precision is 0.89267
+     recall is 0.88757
+     roc_auc is 0.97878
+     ```
 
-In this exercise, you will experiment with some of these parameters. The dataset and task will remain the same: predict the weekday for each commit using the following data: uid, lab name, number of trials, and the hour of the commit.
+2. **Анализ ошибок**:
+   * Проведён детальный срез ошибок по столбцам: `weekday`, `labname` и `user`. Выявлены категории данных, на которых модель допускает наибольший процент промахов.
+   * Лучшая модель сохранена.
 
-What you need to do is fully described in the [notebook](https://drive.google.com/file/d/1-bx3kLOrZhe6eGRUj6187SVCglHUyqW5/view).
+3. **Универсальная функция**:
+   * Разработана функция, принимающая на вход список моделей и словарей параметров и возвращающая структурированный словарь со всеми 4 метриками качества для каждого алгоритма.
 
-## Chapter V
+---
 
-### Exercise 01: Gridsearch
+## Exercise 03: Ensembles
 
-- Turn-in directory: `ex01/`.
-- Files to turn in: `gridsearch.ipynb`.
-- Allowed functions: no restrictions.
+### Цель
+Повысить качество классификации с помощью техники ансамблирования: `VotingClassifier`, `BaggingClassifier` и `StackingClassifier`.
 
-We're sure you're tired of manually iterating through the different parameters of various models. You probably think there should be a way to automate the process. Yes, there is: GridSearch.
+### Результаты выполнения
+1. **Индивидуальные классификаторы**:
+   * Переобучены SVM, Decision Tree и Random Forest на валидационной выборке. Рассчитаны базовые метрики (`accuracy`, `precision`, `recall`).
 
-Specify the range of values for the parameters you want to optimize, then put them into GridSearchCV. GridSearchCV will try all of them, calculate the metrics on cross-validation, and provide the best combination of parameters, as well as the overall results of its mini-research. Cool, right?
+2. **Voting Classifier (Ансамбль голосования)**:
+   * Объединены три модели. Исследовано прямое (`hard`) и мягкое (`soft`) голосование, а также влияние различных весов моделей (`weights`).
+   * Модель с наилучшей точностью на контрольной выборке оценена на тестовом наборе данных.
 
-What you need to do describe in the [notebook](https://drive.google.com/file/d/1qH7LmNIrzkH3ViC1aPfnHT5rVKBcEFrQ/view).
+3. **Bagging Classifier (Бэггинг)**:
+   * Построен ансамбль бэггинга над базовой моделью `SVM`.
+   * Проведена оптимизация количества базовых алгоритмов (`n_estimators`). Выбрана лучшая конфигурация по критерию `accuracy` (при равенстве — по `precision`).
 
-## Chapter VI
+4. **Stacking Classifier (Стеккинг)**:
+   * Настроена воспроизводимая схема кросс-валидации через `StratifiedKFold(random_state=21)`.
+   * Исследована эффективность стеккинга из 3 моделей с финальным мета-классификатором `LogisticRegression(solver='liblinear')`.
+   * Проведён перебор количества фолдов `n_splits` $\in [2, 7]$ и флага `passthrough`.
 
-### Exercise 02: Metrics
+5. **Финальный анализ**:
+   * Выбран абсолютный лидер среди всех ансамблей.
+   * Выполнен анализ распределения ошибок лучшего ансамбля по дням недели, лабораторным работам (`labname`) и пользователям (`users`).
+   * Модель сохранена на диск.
 
-- Turn-in directory: `ex02/`.
-- Files to turn in: `metrics.ipynb`.
-- Allowed functions: no restrictions.
+---
 
-Is 90% accuracy a good result? It's actually not easy to say. Imagine two unbalanced classes: 95% of the samples belong to the first class, and 5% belong to the second. Accuracy will be worse than with a naive classifier when making predictions using the most popular class. This is not a fantasy. This situation is common in anti-fraud tasks, for example. The number of fraud cases is significantly lower than the number of normal cases. Is this a bad metric? It is simple to understand, and you can use it to compare different models within a task. However, this metric can be misleading when comparing results to a model from another task. Additionally, it does not provide much information about errors. You only know how many there are. But what kind?
+## Exercise 04: Pipelines and OOP
 
-Some other metrics can answer this question. They all come from the [confusion matrix](https://en.wikipedia.org/wiki/Confusion_matrix). The first is precision. It is the number of correctly predicted samples of one class divided by the total number of predictions of that class. For example, imagine that we predicted 10 days as weekends, but only seven of them actually were. The precision would be 0.7.
+### Цель
+Оформить полный цикл обработки данных, подбора моделей и сохранения результатов в виде модульного ООП-кода с использованием пайплайнов `scikit-learn`.
 
-The second is recall. It is the number of correctly predicted samples of one class divided by the true number of that class. Again, imagine that we predicted 10 days as weekends, but only 7 of them were actually weekends. In the dataset, there were 20 weekends. The recall would be 0.35 (7/20).
+### Результаты выполнения
 
-Precision is useful when we want to show an ad with 16+ content. We want to make precise predictions. Recall can be useful for identifying terrorists. We want to find all of them, no matter how many civilians experience inconvenience along the way. There is also a metric that combines both: the harmonic mean F1 score. Use it when you need to optimize both.
+1. **Разработка кастомных трансформеров**:
+   * `FeatureExtractor`: Класс для извлечения `hour` и `weekday` из колонки `timestamp` с последующим удалением исходного столбца времени.
+   * `MyOneHotEncoder`: Класс для автоматического кодирования всех категориальных признаков через `OneHotEncoder` с исключением целевой переменной.
+   * `TrainValidationTest`: Класс для разбиения данных на `train`, `valid` и `test` выборки с поддержкой стратификации.
 
-Also, there is the [ROC-curve](https://en.wikipedia.org/wiki/Receiver_operating_characteristic). When making predictions, you typically use probabilities. The final classification is made by comparing them to the threshold. For example, if the probability of it being a weekend on a given day is 0.2 and the threshold is 0.5, then it is not a weekend. 
+2. **Разработка класса `ModelSelection`**:
+   * Класс принимает список объектов `GridSearchCV` и словарь сопоставления имён.
+   * Метод `choose()` проводит обучение моделей, выводит прогресс через `tqdm.notebook`, печатает лучшие параметры и возвращает имя лучшего классификатора по результатам на валидационной выборке.
+   * Метод `best_results()` формирует итоговую таблицу с метриками всех семейств моделей:
 
-However, if the threshold were changed to 0.1, the same sample would be predicted as a weekend. Now, imagine that we calculate the recall for each threshold and the number of working days predicted as weekends divided by the actual number of working days. We can plot both of these values to get the ROC curve. The higher the curve, the better. However, comparing curves can be inconvenient. That is why we use another metric, the area under the curve (AUC). 
+   | model | params | valid_score |
+   | :--- | :--- | :--- |
+   | **SVM** | `{'C': 10, 'class_weight': None, 'gamma': 'auto', ...}` | `0.877778` |
+   | **Decision Tree** | `{'class_weight': 'balanced', 'criterion': 'gini', ...}` | `0.866667` |
+   | **Random Forest** | `{'class_weight': None, 'criterion': 'entropy', ...}` | `0.907407` |
 
-Precision, recall, and AUC are useful for comparing the performance of different models from different tasks. They also tell us something about errors. Everything we discussed here was related to binary classification. However, with some adjustments, it can be used for multiclass and multilabel classification. For example, you can read about it [here](https://towardsdatascience.com/multi-class-metrics-made-simple-part-i-precision-and-recall-9250280bddc2), for example.
+3. **Разработка класса `Finalize`**:
+   * Метод `final_score()` вычисляет финальное качество лучшей модели на отложенной тестовой выборке (`test_set`).
+   * Метод `save_model()` сохраняет обученную модель в файл с динамическим именем формата: `name_of_the_model_{accuracy}.sav`.
 
-What you need to do is fully described in the [notebook](https://drive.google.com/file/d/18FA62WxDMYUhhk1dWqb8dhcG3kDw6Xf1/view).
-
-## Chapter VII
-
-### Exercise 03: Ensembles
-
-- Turn-in directory: `ex03/`.
-- Files to turn in: `ensembles.ipynb`.
-- Allowed functions: no restrictions.
-
-As you know, a random forest is an ensemble of many different trees. However, you can actually create an ensemble from any type of model. In this exercise, you will try three approaches: a voting classifier, a bagging classifier, and a stacking classifier. Who knows? Maybe it will help you improve the quality of your predictions.
-
-What you need to do is fully described in the [notebook](https://drive.google.com/file/d/1z_DTgLXCNw_uTTjkWMzzFFVJc03xSSc2/view).
-
-## Chapter VIII
-
-### Exercise 04: Pipelines and OOP
-
-- Turn-in directory: `ex04/`.
-- Files to turn in: pipelines.ipynb.
-- Allowed functions: no restrictions.
-
-While trying to solve the problem, you performed many different actions: you prepared the data, tried different models and metrics, optimized their hyperparameters, and tried different kinds of ensembles. Your code is probably scattered across different notebooks, requiring a lot of scrolling, and it probably looks chaotic. 
-
-In this final exercise of the day, you will clean up your code and make it more organized. Why is this important? In real life, you may want to share it with your colleagues or include it in your portfolio, or you may want it for your own future convenience. If you return to that code several months from now, you may think, "Who made that mess?"
-
-In this exercise, you will apply the object-oriented programming (OOP) approach to data analysis. The first part of your notebook will contain only imports, classes, and methods. The second part will be your "main program". You will work with the initial data and go through most of the previous steps.
-
-What you need to do is fully described in the [notebook](https://disk.360.yandex.ru/d/jXE4MK0G5C5PKQ).
+4. **Запуск Main Program**:
+   * Успешно собран и выполнен единый пайплайн:
+     1. Загрузка данных из исходного `.csv`.
+     2. Применение `Pipeline([('feature_extractor', ...), ('onehot_encoder', ...)])`.
+     3. Разделение данных через `TrainValidationTest`.
+     4. Автоматический подбор лучшей модели с помощью `ModelSelection`.
+     5. Финальное тестирование и сохранение обученной модели через `Finalize`.
