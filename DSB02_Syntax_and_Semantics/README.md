@@ -183,30 +183,3 @@ The script does not support your language yet.
   'pinkman@yo.org', 'mr@robot.gov', 'eleven@yahoo.com']
   recipients = ['andrew@gmail.com', 'jessica@gmail.com', 'john@snow.is']
   ```
-
-### Exercise 08. Работа со строками как со списками
-
-1. Создайте скрипт, который принимает в качестве аргумента путь к файлу, содержащему эти адреса электронной почты. Все адреса в файле разделены символом `'\n'`. Скрипт должен возвращать таблицу со следующими полями: `Name`, `Surname` и `Email`, разделёнными символом `"\t"`. Значения имени и фамилии должны начинаться с заглавной буквы. Таблица должна быть сохранена в файле `employees.tsv`.
-
-   Пример:
-
-2. Создайте ещё один скрипт, который принимает адрес электронной почты, ищет соответствующее имя в файле, созданном первым скриптом, и возвращает первый абзац письма:
-
-   *Dear Ivan, welcome to our team! We are sure that it will be a pleasure to work with you. That’s a precondition for the professionals that our company hires.*
-
-3. Использование конструкции `'la-la {0}'.format(text)` запрещено. Используйте f-строки. Они быстрее и более читаемы.
-
-### Exercise 09. Шифр Цезаря
-
-Существует метод, называемый [шифром Цезаря](https://en.wikipedia.org/wiki/Caesar_cipher), который позволяет кодировать текст путём сдвига букв в алфавитном порядке. Например, зашифрованной версией `"hello"` может быть `"tqxxa"`, если использовать сдвиг на 12 позиций.
-
-1. Напишите программу, которая будет кодировать или декодировать любую строку с использованием заданного сдвига в соответствии с переданными аргументами:
-
-   ```
-   $ python3 caesar.py encode 'ssh -i private.key user@school21.ru' 12
-   eet -u bduhmfq.wqk geqd@eotaax21.dg
-   $ python3 caesar.py decode 'eet -u bduhmfq.wqk geqd@eotaax21.dg' 12
-   ssh -i private.key user@school21.ru
-   ```
-
-2. Если скрипту передана строка, содержащая кириллические символы, например, он должен вызвать исключение: `"The script does not support your language yet."` Если передано неправильное количество аргументов, также необходимо вызвать исключение.
