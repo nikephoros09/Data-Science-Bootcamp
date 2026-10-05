@@ -1,7 +1,5 @@
 # Machine Learning: Advanced
 
----
-
 ## Exercise 00: Regularization
 
 ### Цель
