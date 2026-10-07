@@ -1,4 +1,4 @@
-# Efficient code practices
+# Efficient Code Practices
 
 ### Exercise 01. Map
 
