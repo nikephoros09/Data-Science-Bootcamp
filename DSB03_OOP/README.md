@@ -1,4 +1,4 @@
-# Intro to Python: OOP skills
+# OOP skills
 
 ### Exercise 00. Простой класс
 
