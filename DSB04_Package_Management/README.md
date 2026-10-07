@@ -1,4 +1,4 @@
-# Intro to Python: Package management and virtual environment
+# Package Management and Virtual Environment
 
 ### Exercise 00. Виртуальное окружение
 
