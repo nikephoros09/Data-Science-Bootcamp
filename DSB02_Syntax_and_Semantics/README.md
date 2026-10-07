@@ -1,4 +1,4 @@
-# Intro to Python: Syntax and Semantics
+Syntax and Semantics
 
 ### Exercise 00. Типы данных
 
