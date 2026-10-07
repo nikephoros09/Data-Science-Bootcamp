@@ -1,4 +1,4 @@
-# OOP skills
+# OOP Skills
 
 ### Exercise 00. Простой класс
 
